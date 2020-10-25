@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_
 
 def find_params_dbscan(train_X, train_Y, c):
     #0.36 2
-    classifier = DBSCAN(eps=0.12, min_samples=3)
+    classifier = DBSCAN(eps=0.13, min_samples=3)
     X = train_X[train_Y == c]
     C = classifier.fit_predict(X)
     print('簇的个数:{}'.format(max(C) + 1))
@@ -87,21 +87,35 @@ def CNA(conf_matrix):
 #    # ax3.colorbar()
 #     plt.show()
 
+def plot_same_class_Data(X1,X2):
+    X1=PCA(n_components=2).fit_transform(X1)
+    X2=PCA(n_components=2).fit_transform(X2)
+    plt.scatter(X1[:,0],X1[:,1])
+    plt.show()
+    plt.scatter(X2[:, 0], X2[:, 1])
+    plt.show()
+
+
+
 
 if __name__ == '__main__':
     # train_X, test_X, train_Y, test_Y = pre_adult_data()
     # find_params_dbscan(train_X,train_Y)
-    train_X,train_Y=pre_transfusion_data()
+    train_X,train_Y=pre_yeast()
+    plot_data(train_X,train_Y)
     print(Counter(train_Y))
     #plot_data(train_X,train_Y)
     print(train_X.shape)
-    #find_params_dbscan(train_X,train_Y,1)
-    X1,Y1=dbscan_based.DbscanBasedOversample(eps=0.15,min_pts=3,multiple_k=0.8).fit_sample(train_X,train_Y)
-    X2, Y2 = dbscan_based.DbscanBasedOversample(eps=0.15, min_pts=3,).fit_sample(train_X, train_Y)
+    #find_params_dbscan(train_X,train_Y,3)
+    X, Y= dbscan_based.MultiDbscanBasedOverSample(eps=0.13, min_pts=3,noise_radio=0.99999).fit_sample(train_X, train_Y)
+    #print(Counter(Y))
+    #plot_same_class_Data(train_X[train_Y==4],X[Y==4])
     #plot_tran_Data(train_X,train_Y,X1,Y1,X2,Y2)
     #train_X,train_Y=CCR().fit_sample(train_X,train_Y)
     # print(Counter(train_Y))
-   # plot_data(X1,Y1)
+    plot_data(X, Y)
+    #print(Counter(Y))
+    #plot_data(train_X,train_Y)
     # plot_data(train_X,train_Y)
 
 

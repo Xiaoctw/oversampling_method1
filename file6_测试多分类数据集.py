@@ -79,16 +79,18 @@ dic1={
 'automobile':(1.8,3),
 'ecoli':(0.12,3),
 'glass':(0.15,3),
-'wine':(0.36,2)
+'wine':(0.36,2),
+'yeast':(0.13,3)
 }
 
-file_name='wine'
+file_name='yeast'
 eps,min_pts=dic1[file_name]
 if __name__ == '__main__':
-    X, Y = pre_wine()
+    X, Y = pre_yeast()
   #  plot_data(X, Y)
     #X, Y = method.fit_sample(X, Y)
-    model = KNeighborsClassifier(n_neighbors=3)
+   # model = KNeighborsClassifier(n_neighbors=3)
+    model=DecisionTreeClassifier()
     res_list1 = compare_different_multi_oversample_method(model, None, X, Y)
     res_list2=compare_different_multi_oversample_method(model, 'smote', X, Y)
     res_list3=compare_different_multi_oversample_method(model, 'borderline_smote', X, Y)
@@ -96,8 +98,8 @@ if __name__ == '__main__':
     res_list5=compare_different_multi_oversample_method(model,'SMOTE_ENN',X,Y)
     res_list6 = compare_different_multi_oversample_method(model, MultiClassCCR(), X, Y)
     res_list7 = compare_different_multi_oversample_method(model, dbscan_based.MultiDbscanBasedOverSample(eps=eps,
-                                                                                                         min_pts=min_pts,outline_radio=0.5,
-                                                                                                         ),
+                                                                                                         min_pts=min_pts,outline_radio=0.2,
+                                                                                                         noise_radio=0.9),
                                                           X, Y)
     print_result('None',res_list1)
     print_result('SMOTE',res_list2)
@@ -108,4 +110,4 @@ if __name__ == '__main__':
     print_result('dbscan_result', res_list7)
     print(Counter(Y))
    # plot_data(X, Y)
-  #  save_result([res_list1,res_list2,res_list3,res_list4,res_list5,res_list6,res_list7],model_name='KNN',data_set=file_name)
+    #save_result([res_list1,res_list2,res_list3,res_list4,res_list5,res_list6,res_list7],model_name='KNN',data_set=file_name)

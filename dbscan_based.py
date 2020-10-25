@@ -12,13 +12,14 @@ from imblearn.under_sampling import EditedNearestNeighbours
 class DbscanBasedOversample:
 
     def __init__(self, eps=0.08, min_pts=8, k=5, p=2, outline_radio=0.6, imbalance_radio=15, min_core_number=5,
-                 noise_radio=0.3, multiple_k=4, filter_majority=False):
+                 noise_radio=0.3, multiple_k=4, filter_majority=False,translations=True):
         """
         :param eps: dbscan半径大小
         :param min_pts: 区域内最小点数
         :param k: k近邻
         :param p: 距离度量
         :param outline_radio: 比率，在边界点生成数据点的比率
+        :param noise_radio: 比率，当噪声点数量小于某个值时，不生成数据
         :param imbalance_radio: 不平衡率，极度不平衡情况下生成数量较少
         :param min_core_number: 每个簇最少的少数类样本数
         :param multiple_k:单个少数类样本最多生成数量是k的几倍，限制单个样本生成数量，避免生成区域畸形
@@ -33,6 +34,7 @@ class DbscanBasedOversample:
         self.p = p
         self.min_core_number = min_core_number
         self.filter_majority = filter_majority
+        self.translations=translations
 
     def fit_sample(self, X, Y, k=-1, minority_class=None):
         if k == -1:
@@ -112,7 +114,8 @@ class DbscanBasedOversample:
                 translations[majority_idxes] += (X[majority_idxes] - X[i]) * (
                         (max_dist - dist_arr[majority_idxes]) / (1e-6 + dist_arr[majority_idxes])).reshape(-1, 1)
             total_k_nearest_majority += num_k_nearest_majority[i]
-        X += translations  # 对多数类样本点进行位移
+        if self.translations:
+            X += translations  # 对多数类样本点进行位移
         oversample_outline_data = []
         for i in outline_sample_indices:
             cov = cov_cluster[minority_cluster_label[i]]
@@ -155,14 +158,6 @@ class DbscanBasedOversample:
             point = X[np.random.choice(k_nearest_idxes)]
             rate = random.random()
             oversample_noise_data.append([point * rate + X[i] * (1 - rate)])
-        # else:
-        #     for i in noise_sample_indices:
-        #         dist_arr=dist_mat[i]
-        #         k_nearest_idxes=np.argsort(dist_arr)[1:k+1]
-        #         for _ in range(num_oversample_noise//len(noise_sample_indices)):
-        #             point=X[np.random.choice(k_nearest_idxes)]
-        #             rate=random.random()
-        #             oversample_noise_data.append([point*rate+X[i]*(1-rate)])
 
         if len(oversample_noise_data) > 0:
             oversample_noise_data = np.concatenate(oversample_noise_data).reshape(-1, num_feature)
@@ -172,7 +167,7 @@ class DbscanBasedOversample:
 
             # 随机重排
         print('核心生成点:{},边界生成点:{},噪声生成点:{}'.format(len(oversample_core_data), len(oversample_outline_data),
-                                                  len(noise_sample_indices)))
+                                                  len(oversample_noise_data)))
         indices = np.arange(X.shape[0])
         np.random.shuffle(indices)
         X = X[indices]
@@ -196,7 +191,7 @@ class DbscanBasedOversample:
 
 class MultiDbscanBasedOverSample:
     def __init__(self, p=2, k=7, eps=0.8, min_pts=4,outline_radio=0.6, imbalance_radio=15, min_core_number=5,
-                 noise_radio=0.3, multiple_k=4, filter_majority=False):
+                 noise_radio=0.3, multiple_k=4, filter_majority=False,translations=True):
         self.p = p
         self.k = k
         self.eps = eps
@@ -207,6 +202,7 @@ class MultiDbscanBasedOverSample:
         self.noise_radio=noise_radio
         self.multiple_k=multiple_k
         self.filter_majority=filter_majority
+        self.translations=translations
 
     def fit_sample(self, X, Y):
         classes = np.unique(Y)
@@ -241,7 +237,7 @@ class MultiDbscanBasedOverSample:
                 unused_observations[classes[j]] = observations[classes[j]]
 
             unpacked_points, unpacked_labels = self.unpack_observations(used_observations)
-            sam_method = DbscanBasedOversample(p=self.p, k=self.k, eps=self.eps, min_pts=self.min_pts, outline_radio=self.outline_radio,
+            sam_method = DbscanBasedOversample(p=self.p, k=self.k, eps=self.eps, min_pts=self.min_pts, outline_radio=self.outline_radio,translations=self.translations,
                                                imbalance_radio=self.imbalance_radio, min_core_number=self.min_core_number, noise_radio=self.noise_radio, multiple_k=self.multiple_k, filter_majority=self.filter_majority)
             over_sampled_points, over_sampled_labels = sam_method.fit_sample(unpacked_points, unpacked_labels,
                                                                              minority_class=tem_class)

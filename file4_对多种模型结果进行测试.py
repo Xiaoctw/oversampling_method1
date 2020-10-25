@@ -114,19 +114,19 @@ def save_result(lists,model_name,data_set):
 
 dic1={'transfusion':(0.15,3),
       'adult':(1.6,3),
-      'breast_cancer':(0.5,3),
+      'breast-cancer-wisconsin':(0.5,3),
       'haberman':(0.14,3)}
 
-file_name='breast_cancer'
+file_name='breast-cancer-wisconsin'
 
 eps,min_pts=dic1[file_name]
 
 if __name__ == '__main__':
-    X, Y =pre_breast_cancer()
-   # model=KNeighborsClassifier(n_neighbors=3)
-    model=DecisionTreeClassifier()
+    X, Y =load_data(file_name)
+    model=KNeighborsClassifier(n_neighbors=3)
+    #model=DecisionTreeClassifier()
     res_list1=compare_different_oversample_method(model,None,X,Y)
-    res_list2=compare_different_oversample_method(model,dbscan_based.DbscanBasedOversample(eps=eps,min_pts=min_pts,outline_radio=0.2,filter_majority=True),X,Y)
+    res_list2=compare_different_oversample_method(model,dbscan_based.DbscanBasedOversample(eps=eps,min_pts=min_pts,filter_majority=True),X,Y)
     res_list3=compare_different_oversample_method(model,CCR(),X,Y)
     res_list4 = compare_different_oversample_method(model, 'smote', X, Y)
     res_list5 = compare_different_oversample_method(model, 'borderline_smote', X, Y)
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     print_result('borderline_smote', res_list5)
     print_result('ADASYN', res_list6)
     print_result('SMOTE_ENN', res_list7)
-    save_result([res_list1,res_list4,res_list5,res_list6,res_list7,res_list3,res_list2],model_name='KNN',data_set=file_name)
+   # save_result([res_list1,res_list4,res_list5,res_list6,res_list7,res_list3,res_list2],model_name='KNN',data_set=file_name)
 
 
 
