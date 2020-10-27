@@ -11,7 +11,7 @@ from imblearn.under_sampling import EditedNearestNeighbours
 
 class DbscanBasedOversample:
 
-    def __init__(self, eps=0.08, min_pts=8, k=5, p=2, outline_radio=0.6, imbalance_radio=15, min_core_number=5,
+    def __init__(self, eps=0.08, min_pts=8, k=5, p=2,fit_outline_radio=True, outline_radio=0.6, imbalance_radio=15, min_core_number=5,
                  noise_radio=0.3, multiple_k=4, filter_majority=False,translations=True):
         """
         :param eps: dbscan半径大小
@@ -35,6 +35,7 @@ class DbscanBasedOversample:
         self.min_core_number = min_core_number
         self.filter_majority = filter_majority
         self.translations=translations
+        self.fit_outline_radio=fit_outline_radio
 
     def fit_sample(self, X, Y, k=-1, minority_class=None):
         if k == -1:
@@ -78,7 +79,8 @@ class DbscanBasedOversample:
         else:
             num_oversample_noise = int(self.radio_noise(len(noise_sample_indices) / num_minority) * num_oversample)
         num_oversample -= num_oversample_noise
-        self.outline_radio=self.fit_alpha(len(outline_sample_indices)/num_minority)
+        if self.fit_outline_radio:
+            self.outline_radio=self.fit_alpha(len(outline_sample_indices)/num_minority)
         num_oversample_outline = num_oversample * self.outline_radio
         total_k_nearest_majority = 0
         cov_cluster, cluster_size = {}, {}
@@ -190,7 +192,7 @@ class DbscanBasedOversample:
 
 
 class MultiDbscanBasedOverSample:
-    def __init__(self, p=2, k=7, eps=0.8, min_pts=4,outline_radio=0.6, imbalance_radio=15, min_core_number=5,
+    def __init__(self, p=2, k=7, eps=0.8, min_pts=4,fit_outline_radio=True,outline_radio=0.6, imbalance_radio=15, min_core_number=5,
                  noise_radio=0.3, multiple_k=4, filter_majority=False,translations=True):
         self.p = p
         self.k = k
@@ -203,6 +205,7 @@ class MultiDbscanBasedOverSample:
         self.multiple_k=multiple_k
         self.filter_majority=filter_majority
         self.translations=translations
+        self.fit_outline_radio=fit_outline_radio
 
     def fit_sample(self, X, Y):
         classes = np.unique(Y)
@@ -237,7 +240,7 @@ class MultiDbscanBasedOverSample:
                 unused_observations[classes[j]] = observations[classes[j]]
 
             unpacked_points, unpacked_labels = self.unpack_observations(used_observations)
-            sam_method = DbscanBasedOversample(p=self.p, k=self.k, eps=self.eps, min_pts=self.min_pts, outline_radio=self.outline_radio,translations=self.translations,
+            sam_method = DbscanBasedOversample(p=self.p, k=self.k, eps=self.eps, min_pts=self.min_pts, outline_radio=self.outline_radio,translations=self.translations,fit_outline_radio=self.fit_outline_radio,
                                                imbalance_radio=self.imbalance_radio, min_core_number=self.min_core_number, noise_radio=self.noise_radio, multiple_k=self.multiple_k, filter_majority=self.filter_majority)
             over_sampled_points, over_sampled_labels = sam_method.fit_sample(unpacked_points, unpacked_labels,
                                                                              minority_class=tem_class)

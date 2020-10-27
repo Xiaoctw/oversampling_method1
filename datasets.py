@@ -72,6 +72,7 @@ def load_data(dataset):
     Counter({1: 48, 2: 46, 3: 29, 0: 20, 4: 13})
     ecoli：
     半径0.12 3
+    noise_rate=0.9
     链接：http://archive.ics.uci.edu/ml/machine-learning-databases/yeast/yeast.data
     Counter({'cp': 143, 'im': 77, 'pp': 52, 'imU': 35, 'om': 20, 'omL': 5, 'imS': 2, 'imL': 2})
     yeast：
