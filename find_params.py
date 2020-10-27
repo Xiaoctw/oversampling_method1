@@ -61,7 +61,7 @@ def cal_multi_class_matrics(y_label, y_predict):
 
 def mGM(conf_matrix):
     m = len(conf_matrix)
-    val = reduce((lambda x, y: x * y), [conf_matrix[i][i] / sum(conf_matrix[i]) for i in range(m) if sum(conf_matrix[i])!=0])
+    val = reduce((lambda x, y: x * y), [conf_matrix[i][i] / sum(conf_matrix[i]) for i in range(m) if sum(conf_matrix[i])!=0 and conf_matrix[i][i]!=0])
     return val ** (1 / m)
 
 def CNA(conf_matrix):

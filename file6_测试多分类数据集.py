@@ -84,7 +84,7 @@ dic1 = {
     'yeast': (0.13, 3)
 }
 
-file_name = 'automobile'
+file_name = 'yeast'
 eps, min_pts = dic1[file_name]
 if __name__ == '__main__':
     X, Y = load_data(file_name)
@@ -101,10 +101,10 @@ if __name__ == '__main__':
     res_list7 = compare_different_multi_oversample_method(model, dbscan_based.MultiDbscanBasedOverSample(eps=eps,
                                                                                                          k=5,
                                                                                                          min_pts=min_pts,
-                                                                                                            noise_radio=0.1
-                                                                                                         ,outline_radio=0.7,
-                                                                                                         fit_outline_radio=False
-                                                                                                         #,filter_majority=True
+                                                                                                            noise_radio=0.2
+                                                                                                         ,outline_radio=0.2,
+                                                                                                         fit_outline_radio=True
+
                                                                                                         ),
                                                           X, Y)
     print_result('None', res_list1)
@@ -116,5 +116,5 @@ if __name__ == '__main__':
     print_result('dbscan_result', res_list7)
     print(Counter(Y))
     # plot_data(X, Y)
-    save_result([res_list1, res_list2, res_list3, res_list4, res_list5, res_list6, res_list7], model_name='tree',
+    save_result([res_list1, res_list2, res_list3, res_list4, res_list5, res_list6, res_list7], model_name='tree1',
                 data_set=file_name)

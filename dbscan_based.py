@@ -212,62 +212,62 @@ class MultiDbscanBasedOverSample:
         sizes = np.array([sum(Y == c) for c in classes])
         sorted_idxes = np.argsort(sizes)[::-1]
         classes = classes[sorted_idxes]
-        observations = {c: X[Y == c] for c in classes}
+        class_matrix = {c: X[Y == c] for c in classes}
         n_max = max(sizes)
         for i in range(1, len(classes)):
             tem_class = classes[i]
-            n = n_max - len(observations[tem_class])
-            used_observations = {}
-            unused_observations = {}
+            #n = n_max - len(class_matrix[tem_class])
+            used_class_matrix = {}
+            unused_class_matrix = {}
             for j in range(i):
-                all_indices = list(range(len(observations[classes[j]])))
+                all_indices = list(range(len(class_matrix[classes[j]])))
                 # print(len(all_indices))
                 # print(int(n_max / i))
                 # print('-----------')
                 used_indices = np.random.choice(all_indices, min(int(n_max / i), len(all_indices)), replace=False)
-                used_observations[classes[j]] = [
-                    observations[classes[j]][idx] for idx in used_indices
+                used_class_matrix[classes[j]] = [
+                    class_matrix[classes[j]][idx] for idx in used_indices
                 ]
-                unused_observations[classes[j]] = [
-                    observations[classes[j]][idx] for idx in all_indices if idx not in used_indices
+                unused_class_matrix[classes[j]] = [
+                    class_matrix[classes[j]][idx] for idx in all_indices if idx not in used_indices
                 ]
 
-            used_observations[tem_class] = observations[tem_class]
-            unused_observations[tem_class] = []
+            used_class_matrix[tem_class] = class_matrix[tem_class]
+            unused_class_matrix[tem_class] = []
 
             for j in range(i + 1, len(classes)):
-                used_observations[classes[j]] = []
-                unused_observations[classes[j]] = observations[classes[j]]
+                used_class_matrix[classes[j]] = []
+                unused_class_matrix[classes[j]] = class_matrix[classes[j]]
 
-            unpacked_points, unpacked_labels = self.unpack_observations(used_observations)
+            unpacked_points, unpacked_labels = self.unpack_dict(used_class_matrix)
             sam_method = DbscanBasedOversample(p=self.p, k=self.k, eps=self.eps, min_pts=self.min_pts, outline_radio=self.outline_radio,translations=self.translations,fit_outline_radio=self.fit_outline_radio,
                                                imbalance_radio=self.imbalance_radio, min_core_number=self.min_core_number, noise_radio=self.noise_radio, multiple_k=self.multiple_k, filter_majority=self.filter_majority)
             over_sampled_points, over_sampled_labels = sam_method.fit_sample(unpacked_points, unpacked_labels,
                                                                              minority_class=tem_class)
             #    print(Counter(over_sampled_labels))
-            observations = {}
+            class_matrix = {}
             for cls in classes:
                 class_oversampled_points = over_sampled_points[over_sampled_labels == cls]
-                class_unused_points = unused_observations[cls]
+                class_unused_points = unused_class_matrix[cls]
                 if len(class_unused_points) == 0 and len(class_oversampled_points) == 0:
-                    observations[cls] = np.array([])
+                    class_matrix[cls] = np.array([])
                 elif len(class_oversampled_points) == 0:
-                    observations[cls] = class_unused_points
+                    class_matrix[cls] = class_unused_points
                 elif len(class_unused_points) == 0:
-                    observations[cls] = class_oversampled_points
+                    class_matrix[cls] = class_oversampled_points
                 else:
-                    observations[cls] = np.concatenate([class_oversampled_points, class_unused_points])
+                    class_matrix[cls] = np.concatenate([class_oversampled_points, class_unused_points])
 
-        unpacked_points, unpacked_labels = self.unpack_observations(observations)
+        unpacked_points, unpacked_labels = self.unpack_dict(class_matrix)
         return unpacked_points, unpacked_labels
 
-    def unpack_observations(self, observations):
+    def unpack_dict(self, class_matrix):
         unpacked_points = []
         unpacked_labels = []
-        for cls in observations:
-            if len(observations[cls]) > 0:
-                unpacked_points.append(observations[cls])
-                unpacked_labels.append(np.array([cls] * len(observations[cls])))
+        for cls in class_matrix:
+            if len(class_matrix[cls]) > 0:
+                unpacked_points.append(class_matrix[cls])
+                unpacked_labels.append(np.array([cls] * len(class_matrix[cls])))
 
         unpacked_points = np.concatenate(unpacked_points)
         unpacked_labels = np.concatenate(unpacked_labels)
