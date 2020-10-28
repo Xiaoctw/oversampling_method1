@@ -1,0 +1,8 @@
+method,precision,recall,f1-score,auc_score
+None,0.816,0.836,0.824,0.931
+SMOTE,0.833,0.838,0.834,0.924
+boarderline-SMOTE,0.803,0.868,0.833,0.92
+ADASYN,0.798,0.864,0.829,0.922
+SMOTE_ENN,0.783,0.872,0.824,0.892
+MC-CCR,0.795,0.876,0.832,0.923
+DbscanOversample,0.825,0.852,0.838,0.927

@@ -39,6 +39,7 @@ def load_data(dataset):
     """
     transfusion:
     dbscan的默认参数：eps=0.15, min_pts=3
+    不限制multiple_k
     outline_radio=0.2
     Counter({0: 570, 1: 178})
     链接：http://archive.ics.uci.edu/ml/machine-learning-databases/blood-transfusion/transfusion.data
@@ -58,17 +59,22 @@ def load_data(dataset):
     adult:
     Counter({0: 1029, 1: 499})
     dbscan的默认参数：eps=1.6, min_samples=3
+    outline_radio=0.7
     该数据中有大量的噪声点
     链接：http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data
     haberman：
     该数据集 225 81 偏斜
     eps 0.14 min_pts 3
+     outline_radio=0.6,
+     noise_radio=0.5,
     链接：http://archive.ics.uci.edu/ml/machine-learning-databases/haberman/haberman.data
     bank：
      Counter({0: 39922, 1: 5289})
     http://archive.ics.uci.edu/ml/machine-learning-databases/00222/bank.zip
     automobile：
     默认参数 半径1.8  个数3
+    outline_radio=0.4
+    noise_radio=0.2
     Counter({1: 48, 2: 46, 3: 29, 0: 20, 4: 13})
     ecoli：
     半径0.12 3
@@ -79,6 +85,7 @@ def load_data(dataset):
     eps=0.13,min_pts=3
     outline_radio=0.2,
     noise_radio=0.9
+    不限制边界点生成数量
     数据集：Counter({0: 463, 7: 429, 6: 244, 5: 163, 4: 51, 3: 44, 2: 35, 9: 30, 8: 20, 1: 5})
     链接：http://archive.ics.uci.edu/ml/machine-learning-databases/yeast/yeast.data
     """

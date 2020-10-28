@@ -122,7 +122,7 @@ class DbscanBasedOversample:
         for i in outline_sample_indices:
             cov = cov_cluster[minority_cluster_label[i]]
             num = min(int(k * self.multiple_k),
-                      1 + int(num_oversample_outline * num_k_nearest_majority[i] / (total_k_nearest_majority + 1e-6)))
+                      np.random.choice([0,1]) + int(num_oversample_outline * num_k_nearest_majority[i] / (total_k_nearest_majority + 1e-6)))
             # print(num)
             oversample_outline_data.append(np.random.multivariate_normal(minority_X[i], cov, num))
 
