@@ -40,7 +40,7 @@ def load_data(dataset):
     transfusion:
     dbscan的默认参数：eps=0.15, min_pts=3
     不限制multiple_k
-    outline_radio=0.2
+    outline_radio=0.5
     Counter({0: 570, 1: 178})
     链接：http://archive.ics.uci.edu/ml/machine-learning-databases/blood-transfusion/transfusion.data
     glass:
@@ -50,6 +50,7 @@ def load_data(dataset):
     breast-cancer-wisconsin:
     链接：http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/breast-cancer-wisconsin.data
     eps 0.5   min_pts 3
+    outline_radio=0.7
     Counter({2: 458, 4: 241})
     filter=True
     wine:
@@ -77,9 +78,9 @@ def load_data(dataset):
     noise_radio=0.2
     Counter({1: 48, 2: 46, 3: 29, 0: 20, 4: 13})
     ecoli：
-    半径0.12 3
-    noise_rate=0.9
-    链接：http://archive.ics.uci.edu/ml/machine-learning-databases/yeast/yeast.data
+    半径0.14 3
+    noise_rate=0.7
+    链接：http://archive.ics.uci.edu/ml/machine-learning-databases/ecoli/ecoli.data
     Counter({'cp': 143, 'im': 77, 'pp': 52, 'imU': 35, 'om': 20, 'omL': 5, 'imS': 2, 'imL': 2})
     yeast：
     eps=0.13,min_pts=3
@@ -182,7 +183,9 @@ def pre_adult_data():
     '''
     file_name = 'adult.data'
     data_file = Path(__file__).parent / '二分类数据集' / file_name
-    df = pd.read_csv(data_file, header=None,nrows=2000)
+   # df = pd.read_csv(data_file, header=None,nrows=2000)
+    df=pd.read_csv(data_file,header=None)
+    print('读取数据完成')
     cols = df.columns
     df = pd.concat((pd.get_dummies(df[cols[:-1]]), df[cols[-1]]), axis=1)
     matrix = df.values
@@ -190,17 +193,17 @@ def pre_adult_data():
     Y = LabelEncoder().fit_transform(Y)
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
-    X,Y=EditedNearestNeighbours().fit_sample(X,Y)
+   # X,Y=EditedNearestNeighbours().fit_sample(X,Y)
     # indices = np.arange(len(X))
     # np.random.shuffle(indices)
     # train_X, test_X = X[indices[:len(X) // 10 * 8]], X[indices[len(X) // 10 * 8:]]
     # train_Y, test_Y = Y[indices[:len(X) // 10 * 8]], Y[indices[len(X) // 10 * 8:]]
-    data = np.zeros((X.shape[0], X.shape[1] + 1))
-    data[:, :-1], data[:, -1] = X, Y
-    df = pd.DataFrame(data, columns=None)
-    file_name = 'adult.csv'
-    data_file = Path(__file__).parent / '预处理完毕的数据集' / file_name
-    df.to_csv(data_file, index=False)
+    # data = np.zeros((X.shape[0], X.shape[1] + 1))
+    # data[:, :-1], data[:, -1] = X, Y
+    # df = pd.DataFrame(data, columns=None)
+    # file_name = 'adult.csv'
+    # data_file = Path(__file__).parent / '预处理完毕的数据集' / file_name
+   # df.to_csv(data_file, index=False)
     return X, Y
 
 
@@ -347,7 +350,8 @@ def pre_yeast():
 
 if __name__ == '__main__':
     # X,Y=load_data('automobile')
-    X,Y=pre_haberman()
+    X,Y=pre_adult_data()
+    print(X.shape)
     print(Counter(Y))
     # print(X.shape)
     # print(Y.shape)

@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_
 
 def find_params_dbscan(train_X, train_Y, c):
     #0.36 2
-    classifier = DBSCAN(eps=2.1, min_samples=3)
+    classifier = DBSCAN(eps=0.14, min_samples=3)
     X = train_X[train_Y == c]
     C = classifier.fit_predict(X)
     print('簇的个数:{}'.format(max(C) + 1))
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     print(Counter(train_Y))
     #plot_data(train_X,train_Y)
     print(train_X.shape)
-    find_params_dbscan(train_X,train_Y,4)
+    find_params_dbscan(train_X,train_Y,1)
     # train_X,train_Y=dbscan_based.MultiDbscanBasedOverSample(eps=0.36,min_pts=2).fit_sample(train_X,train_Y)
     # plot_data(train_X,train_Y)
 

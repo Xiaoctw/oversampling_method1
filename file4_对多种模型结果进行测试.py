@@ -102,7 +102,7 @@ def print_result(model_name, res_list):
 
 def save_result(lists, model_name, data_set, i):
     file_name = model_name + data_set + '.csv'
-    path = Path(__file__).parent / ('result0'+'{}'.format(i)) / file_name
+    path = Path(__file__).parent / ('result'+'{}'.format(i)) / file_name
     scores = np.concatenate(lists).reshape(-1, 4)
     scores = np.around(scores, 3)
     methods = np.array(['None', 'SMOTE', 'boarderline-SMOTE', 'ADASYN', 'SMOTE_ENN', 'MC-CCR', 'DbscanOversample'])
@@ -123,23 +123,39 @@ eps, min_pts = dic1[file_name]
 
 if __name__ == '__main__':
     X, Y = load_data(file_name)
+
+    #X,Y=pre_adult_data()
     # model=KNeighborsClassifier(n_neighbors=3)
-    model = DecisionTreeClassifier(max_depth=5, min_samples_split=3)
-    model_name = 'tree'
+    #model = DecisionTreeClassifier(max_depth=5, min_samples_split=3)
+    # from sklearn.naive_bayes import GaussianNB
+    # model=GaussianNB()
+    from sklearn.linear_model import LogisticRegression
+    model = LogisticRegression()
+    model_name = 'LR'
     i = 4
+    import time
+    time1=time.time()
+    print()
     res_list1 = compare_different_oversample_method(model, None, X, Y)
+    time2=time.time()
+    print('没有过采样计算完成,用时:{}'.format(time2-time1))
     res_list2 = compare_different_oversample_method(model, dbscan_based.DbscanBasedOversample(eps=eps, min_pts=min_pts,
-                                                                                              outline_radio=0.6,
-                                                                                              multiple_k=20,
-                                                                                              noise_radio=0.5,
-                                                                                              fit_outline_radio=False,
+                                                                                              outline_radio=0.5,
+                                                                                              noise_radio=0.1,
+                                                                                             # fit_outline_radio=False,
                                                                                               filter_majority=False), X,
                                                     Y)
+    print('dbscan计算完成')
     res_list3 = compare_different_oversample_method(model, CCR(), X, Y)
+    print('ccr计算完成')
     res_list4 = compare_different_oversample_method(model, 'smote', X, Y)
+    print('smote计算完成')
     res_list5 = compare_different_oversample_method(model, 'borderline_smote', X, Y)
+    print('borderline_smote计算完成')
     res_list6 = compare_different_oversample_method(model, 'adasyn', X, Y)
+    print('adasyn计算完成')
     res_list7 = compare_different_oversample_method(model, 'SMOTE_ENN', X, Y)
+    print('SMOTE_ENN计算完成')
     print_result('None', res_list1)
     print_result('dbscan_result', res_list2)
     print_result('MC-CCR', res_list3)

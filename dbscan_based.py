@@ -11,31 +11,32 @@ from imblearn.under_sampling import EditedNearestNeighbours
 
 class DbscanBasedOversample:
 
-    def __init__(self, eps=0.08, min_pts=8, k=5, p=2,fit_outline_radio=True, outline_radio=0.6, imbalance_radio=15, min_core_number=5,
-                 noise_radio=0.3, multiple_k=4, filter_majority=False,translations=True):
+    def __init__(self, eps=0.08, min_pts=4, k=5, p=2, fit_outline_radio=True, outline_radio=0.6, min_core_number=5,
+                 noise_radio=0.1, multiple_k=4, filter_majority=False, translations=True, noise_smote=True):
         """
         :param eps: dbscan半径大小
         :param min_pts: 区域内最小点数
         :param k: k近邻
         :param p: 距离度量
+        :param fit_outline_radio: 是否自适应计算在边界点生成样本的数量
         :param outline_radio: 比率，在边界点生成数据点的比率
         :param noise_radio: 比率，当噪声点数量小于某个值时，不生成数据
-        :param imbalance_radio: 不平衡率，极度不平衡情况下生成数量较少
         :param min_core_number: 每个簇最少的少数类样本数
         :param multiple_k:单个少数类样本最多生成数量是k的几倍，限制单个样本生成数量，避免生成区域畸形
+        :param noise_smote: 在噪声点处生成数据的方法，默认为True，即用smote的方法生成新的样本点
         """
         self.eps = eps
         self.min_pts = min_pts
         self.outline_radio = outline_radio
-        self.imbalance_radio = imbalance_radio
         self.noise_radio = noise_radio
         self.multiple_k = multiple_k
         self.k = k
         self.p = p
         self.min_core_number = min_core_number
         self.filter_majority = filter_majority
-        self.translations=translations
-        self.fit_outline_radio=fit_outline_radio
+        self.translations = translations
+        self.fit_outline_radio = fit_outline_radio
+        self.noise_smote = noise_smote
 
     def fit_sample(self, X, Y, k=-1, minority_class=None):
         if k == -1:
@@ -54,11 +55,11 @@ class DbscanBasedOversample:
         majority_X = X[Y != minority_class]
         minority_Y = Y[Y == minority_class]
         majority_Y = Y[Y != minority_class]
-        if num_majority / num_minority > self.imbalance_radio:
-            # 数据过于不平衡，这种情况下不建议生成过多该样本数据
-            num_oversample = (num_majority - num_minority) // 5
-        else:
-            num_oversample = num_majority - num_minority
+        # if num_majority / num_minority > self.imbalance_radio:
+        #     # 数据过于不平衡，这种情况下不建议生成过多该样本数据
+        #     num_oversample = (num_majority - num_minority) // 5
+        # else:
+        num_oversample = num_majority - num_minority
         X = np.concatenate([minority_X, majority_X])
         Y = np.concatenate([minority_Y, majority_Y])
         classifier = DBSCAN(eps=self.eps, min_samples=self.min_pts)
@@ -78,9 +79,10 @@ class DbscanBasedOversample:
             num_oversample_noise = 0
         else:
             num_oversample_noise = int(self.radio_noise(len(noise_sample_indices) / num_minority) * num_oversample)
+            num_oversample_noise=min(num_oversample_noise,self.multiple_k*k*len(noise_sample_indices))
         num_oversample -= num_oversample_noise
         if self.fit_outline_radio:
-            self.outline_radio=self.fit_alpha(len(outline_sample_indices)/num_minority)
+            self.outline_radio = self.fit_alpha(len(outline_sample_indices) / num_minority)
         num_oversample_outline = num_oversample * self.outline_radio
         total_k_nearest_majority = 0
         cov_cluster, cluster_size = {}, {}
@@ -122,7 +124,8 @@ class DbscanBasedOversample:
         for i in outline_sample_indices:
             cov = cov_cluster[minority_cluster_label[i]]
             num = min(int(k * self.multiple_k),
-                      np.random.choice([0,1]) + int(num_oversample_outline * num_k_nearest_majority[i] / (total_k_nearest_majority + 1e-6)))
+                      np.random.choice([0, 1]) + int(
+                          num_oversample_outline * num_k_nearest_majority[i] / (total_k_nearest_majority + 1e-6)))
             # print(num)
             oversample_outline_data.append(np.random.multivariate_normal(minority_X[i], cov, num))
 
@@ -153,20 +156,26 @@ class DbscanBasedOversample:
 
         oversample_noise_data = []
         # if len(noise_sample_indices)>=num_oversample_noise:
-        for _ in range(num_oversample_noise):
-            i = np.random.choice(noise_sample_indices)
-            dist_arr = dist_mat[i]
-            k_nearest_idxes = np.argsort(dist_arr)[1:k + 1]
-            point = X[np.random.choice(k_nearest_idxes)]
-            rate = random.random()
-            oversample_noise_data.append([point * rate + X[i] * (1 - rate)])
+        if self.noise_smote:
+            for _ in range(num_oversample_noise):
+                i = np.random.choice(noise_sample_indices)
+                dist_arr = dist_mat[i]
+                k_nearest_idxes = np.argsort(dist_arr)[1:k + 1]
+                point = X[np.random.choice(k_nearest_idxes)]
+                rate = random.random()
+                oversample_noise_data.append([point * rate + X[i] * (1 - rate)])
+            if len(oversample_noise_data) > 0:
+                oversample_noise_data = np.concatenate(oversample_noise_data).reshape(-1, num_feature)
 
-        if len(oversample_noise_data) > 0:
-            oversample_noise_data = np.concatenate(oversample_noise_data).reshape(-1, num_feature)
+        elif len(noise_sample_indices)>1:
+            # 在噪声类样本点上利用均值方差生成新的样本
+            noise_data = minority_X[noise_sample_indices]
+            oversample_noise_data = np.random.multivariate_normal(np.mean(noise_data,axis=0), np.cov(noise_data.T),
+                                                                    num_oversample_noise)
+        if len(oversample_noise_data)>0:
             new_label = np.array([minority_class] * oversample_noise_data.shape[0])
             X = np.concatenate([X, oversample_noise_data])
             Y = np.concatenate([Y, new_label])
-
             # 随机重排
         print('核心生成点:{},边界生成点:{},噪声生成点:{}'.format(len(oversample_core_data), len(oversample_outline_data),
                                                   len(oversample_noise_data)))
@@ -176,13 +185,13 @@ class DbscanBasedOversample:
         Y = Y[indices]
         return X, Y
 
-    def fit_alpha(self,val):
-        if val<=0.01:
-            return val*5
-        elif val<=0.05:
-            return 4*val
-        elif val<=0.3:
-            return 3*val
+    def fit_alpha(self, val):
+        if val <= 0.01:
+            return val * 5
+        elif val <= 0.05:
+            return 4 * val
+        elif val <= 0.3:
+            return 3 * val
         else:
             return 0.92
 
@@ -192,20 +201,20 @@ class DbscanBasedOversample:
 
 
 class MultiDbscanBasedOverSample:
-    def __init__(self, p=2, k=7, eps=0.8, min_pts=4,fit_outline_radio=True,outline_radio=0.6, imbalance_radio=15, min_core_number=5,
-                 noise_radio=0.3, multiple_k=4, filter_majority=False,translations=True):
+    def __init__(self, p=2, k=7, eps=0.8, min_pts=4, fit_outline_radio=True, outline_radio=0.6, min_core_number=5,
+                 noise_radio=0.3, multiple_k=4, filter_majority=False, translations=True,noise_smote=True):
         self.p = p
         self.k = k
         self.eps = eps
         self.min_pts = min_pts
-        self.outline_radio=outline_radio
-        self.imbalance_radio=imbalance_radio
-        self.min_core_number=min_core_number
-        self.noise_radio=noise_radio
-        self.multiple_k=multiple_k
-        self.filter_majority=filter_majority
-        self.translations=translations
-        self.fit_outline_radio=fit_outline_radio
+        self.outline_radio = outline_radio
+        self.min_core_number = min_core_number
+        self.noise_radio = noise_radio
+        self.multiple_k = multiple_k
+        self.filter_majority = filter_majority
+        self.translations = translations
+        self.fit_outline_radio = fit_outline_radio
+        self.noise_smote=noise_smote
 
     def fit_sample(self, X, Y):
         classes = np.unique(Y)
@@ -216,7 +225,7 @@ class MultiDbscanBasedOverSample:
         n_max = max(sizes)
         for i in range(1, len(classes)):
             tem_class = classes[i]
-            #n = n_max - len(class_matrix[tem_class])
+            # n = n_max - len(class_matrix[tem_class])
             used_class_matrix = {}
             unused_class_matrix = {}
             for j in range(i):
@@ -240,8 +249,11 @@ class MultiDbscanBasedOverSample:
                 unused_class_matrix[classes[j]] = class_matrix[classes[j]]
 
             unpacked_points, unpacked_labels = self.unpack_dict(used_class_matrix)
-            sam_method = DbscanBasedOversample(p=self.p, k=self.k, eps=self.eps, min_pts=self.min_pts, outline_radio=self.outline_radio,translations=self.translations,fit_outline_radio=self.fit_outline_radio,
-                                               imbalance_radio=self.imbalance_radio, min_core_number=self.min_core_number, noise_radio=self.noise_radio, multiple_k=self.multiple_k, filter_majority=self.filter_majority)
+            sam_method = DbscanBasedOversample(p=self.p, k=self.k, eps=self.eps, min_pts=self.min_pts,
+                                               outline_radio=self.outline_radio, translations=self.translations,
+                                               fit_outline_radio=self.fit_outline_radio, noise_smote=self.noise_smote,
+                                               min_core_number=self.min_core_number, noise_radio=self.noise_radio,
+                                               multiple_k=self.multiple_k, filter_majority=self.filter_majority)
             over_sampled_points, over_sampled_labels = sam_method.fit_sample(unpacked_points, unpacked_labels,
                                                                              minority_class=tem_class)
             #    print(Counter(over_sampled_labels))

@@ -59,7 +59,7 @@ def compare_different_multi_oversample_method(model, sample_method, X, Y):
 
 def save_result(lists, model_name, data_set,i):
     file_name = model_name + data_set + '.csv'
-    path = Path(__file__).parent / ('result0'+'{}'.format(i)) / file_name
+    path = Path(__file__).parent / ('result'+'{}'.format(i)) / file_name
     scores = np.concatenate(lists).reshape(-1, 5)
     scores = np.around(scores, 3)
     methods = np.array(['None', 'SMOTE', 'boarderline-SMOTE', 'ADASYN', 'SMOTE_ENN', 'MC-CCR', 'DbscanOversample'])
@@ -84,15 +84,17 @@ dic1 = {
     'yeast': (0.13, 3)
 }
 
-file_name = 'automobile'
+file_name = 'yeast'
 eps, min_pts = dic1[file_name]
 if __name__ == '__main__':
     X, Y = load_data(file_name)
     #  plot_data(X, Y)
     # X, Y = method.fit_sample(X, Y)
-    #model = KNeighborsClassifier(n_neighbors=3)
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.linear_model import  LogisticRegression
+    model = LogisticRegression()
     i=4
-    model=DecisionTreeClassifier(max_depth=5,min_samples_split=3)
+    #model=DecisionTreeClassifier(max_depth=5,min_samples_split=3)
     res_list1 = compare_different_multi_oversample_method(model, None, X, Y)
     res_list2 = compare_different_multi_oversample_method(model, 'smote', X, Y)
     res_list3 = compare_different_multi_oversample_method(model, 'borderline_smote', X, Y)
@@ -102,10 +104,7 @@ if __name__ == '__main__':
     res_list7 = compare_different_multi_oversample_method(model, dbscan_based.MultiDbscanBasedOverSample(eps=eps,
                                                                                                          k=3,
                                                                                                          min_pts=min_pts,
-                                                                                                            noise_radio=0.2,
-                                                                                                         outline_radio=0.4,
-                                                                                                         multiple_k=40,
-                                                                                                         fit_outline_radio=False,
+                                                                                                        outline_radio=0.7
                                                                                                         ),
                                                           X, Y)
     print_result('None', res_list1)
@@ -117,5 +116,5 @@ if __name__ == '__main__':
     print_result('dbscan_result', res_list7)
     print(Counter(Y))
     # plot_data(X, Y)
-    save_result([res_list1, res_list2, res_list3, res_list4, res_list5, res_list6, res_list7], model_name='tree',
+    save_result([res_list1, res_list2, res_list3, res_list4, res_list5, res_list6, res_list7], model_name='LR',
                 data_set=file_name,i=i)
