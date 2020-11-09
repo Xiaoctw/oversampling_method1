@@ -17,7 +17,8 @@ from imblearn.over_sampling import BorderlineSMOTE
 from imblearn.over_sampling import ADASYN
 from imblearn.under_sampling import EditedNearestNeighbours
 from datasets import *
-
+import warnings
+warnings.filterwarnings("ignore")
 
 def show_result(train_X, train_Y, test_X, test_Y):
     model.fit(train_X, train_Y)
@@ -61,8 +62,10 @@ def compare_different_oversample_method(model, sample_method, X, Y):
     n_split = 5
     skf = StratifiedKFold(n_splits=n_split, shuffle=True)
     res_list = np.zeros(4)
+    cnt=0
     for train_indices, test_indices in skf.split(X, Y):
-        # print('正在进行第{}次交叉验证'.format(i))
+        cnt+=1
+        print('正在进行第{}次交叉验证'.format(cnt))
         train_X, train_Y, test_X, test_Y = X[train_indices], Y[train_indices], X[test_indices], Y[test_indices]
         min_k_kearest = min(Counter(train_Y)) - 1
         if sample_method == 'SMOTE_ENN':
@@ -117,13 +120,12 @@ dic1 = {'transfusion': (0.15, 3),
         'breast-cancer-wisconsin': (0.5, 3),
         'haberman': (0.14, 3)}
 
-file_name = 'haberman'
+file_name = 'adult'
 
 eps, min_pts = dic1[file_name]
 
 if __name__ == '__main__':
-    X, Y = load_data(file_name)
-
+    X, Y = pre_adult_data()
     #X,Y=pre_adult_data()
     # model=KNeighborsClassifier(n_neighbors=3)
     #model = DecisionTreeClassifier(max_depth=5, min_samples_split=3)
@@ -163,5 +165,5 @@ if __name__ == '__main__':
     print_result('borderline_smote', res_list5)
     print_result('ADASYN', res_list6)
     print_result('SMOTE_ENN', res_list7)
-    save_result([res_list1, res_list4, res_list5, res_list6, res_list7, res_list3, res_list2], model_name=model_name,
-                data_set=file_name, i=i)
+    # save_result([res_list1, res_list4, res_list5, res_list6, res_list7, res_list3, res_list2], model_name=model_name,
+    #             data_set=file_name, i=i)

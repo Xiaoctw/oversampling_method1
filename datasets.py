@@ -198,12 +198,12 @@ def pre_adult_data():
     # np.random.shuffle(indices)
     # train_X, test_X = X[indices[:len(X) // 10 * 8]], X[indices[len(X) // 10 * 8:]]
     # train_Y, test_Y = Y[indices[:len(X) // 10 * 8]], Y[indices[len(X) // 10 * 8:]]
-    # data = np.zeros((X.shape[0], X.shape[1] + 1))
-    # data[:, :-1], data[:, -1] = X, Y
-    # df = pd.DataFrame(data, columns=None)
-    # file_name = 'adult.csv'
-    # data_file = Path(__file__).parent / '预处理完毕的数据集' / file_name
-   # df.to_csv(data_file, index=False)
+    data = np.zeros((X.shape[0], X.shape[1] + 1))
+    data[:, :-1], data[:, -1] = X, Y
+    df = pd.DataFrame(data, columns=None)
+    file_name = 'adult.csv'
+    data_file = Path(__file__).parent / '预处理完毕的数据集' / file_name
+    df.to_csv(data_file, index=False)
     return X, Y
 
 
