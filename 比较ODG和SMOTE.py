@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from imblearn.over_sampling import BorderlineSMOTE
+from imblearn.over_sampling import BorderlineSMOTE,SMOTE
 from algorithm_MCCCR import *
 from find_params import *
 import dbscan_based
@@ -38,27 +38,36 @@ def find_colors(train_Y):
 
 # find_params_dbscan(X,Y,1)
 
-X1, Y1 = CCR(energy=4).fit_sample(X, Y)
-X2, Y2 = dbscan_based.DbscanBasedOversample(eps=1, min_pts=3, outline_radio=0.9).fit_sample(X, Y)
+X1, Y1 = SMOTE(k_neighbors=40).fit_sample(X, Y)
+X2,Y2=CCR(energy=3).fit_sample(X,Y)
+X3, Y3 = dbscan_based.DbscanBasedOversample(eps=1, min_pts=3, outline_radio=0.9).fit_sample(X, Y)
 
-plt.rcParams['figure.figsize'] = (15.0, 5.0)
-fig = plt.figure()
-ax0 = fig.add_subplot(1, 3, 1)
-ax0.scatter(X[:, 0], X[:, 1], c=find_colors(Y))
-#ax0.set_title('Original dataset')
+plt.rcParams['figure.figsize'] = (5.0, 5.0)
+plt.scatter(X[:, 0], X[:, 1], c=find_colors(Y))
 plt.axis('off',)
 plt.xticks([])
 plt.yticks([])
-ax1 = fig.add_subplot(1, 3, 2)
-ax1.scatter(X1[:, 0], X1[:, 1], c=find_colors(Y1))
+plt.savefig('myplot20_0.png')
+#ax0.set_title('Original dataset')
+plt.show()
+plt.scatter(X1[:, 0], X1[:, 1], c=find_colors(Y1))
 #ax1.set_title('CCR')
 plt.axis('off')
 plt.xticks([])
 plt.yticks([])
-ax2 = fig.add_subplot(1, 3, 3)
-ax2.scatter(X2[:, 0], X2[:, 1], c=find_colors(Y2))
+plt.savefig('myplot20_1.png')
+plt.show()
+plt.scatter(X2[:, 0], X2[:, 1], c=find_colors(Y2))
 #ax2.set_title('ODG')
 plt.axis('off')
 plt.xticks([])
 plt.yticks([])
+plt.savefig('myplot20_2.png')
+plt.show()
+plt.scatter(X3[:, 0], X3[:, 1], c=find_colors(Y3))
+#ax2.set_title('ODG')
+plt.axis('off')
+plt.xticks([])
+plt.yticks([])
+plt.savefig('myplot20_3.png')
 plt.show()
